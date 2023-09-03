@@ -22,6 +22,9 @@ class MainActivity : AppCompatActivity() {
     private fun onDraw(canvas: Canvas) {
         mainHandler.draw(canvas)
     }
+    private fun onAudio(inputBuffer: ShortArray, outputBuffer: ShortArray) {
+        mainHandler.audio(inputBuffer, outputBuffer)
+    }
 
     private fun onSurfaceChanged(left: Int, top: Int, right: Int, bottom: Int) {
         // Override this
@@ -39,14 +42,16 @@ class MainActivity : AppCompatActivity() {
         screenHandler = ScreenHandler(this, ::onDraw, ::onSurfaceChanged, ::onMotionEvent)
         setContentView(requireNotNull(screenHandler).surfaceView)
 
-        audioHandler = AudioHandler(this)
+        audioHandler = AudioHandler(this, ::onAudio)
+        audioHandler?.createAudioTrack()
+        audioHandler?.startPlayingAudio()
 
         hideUI()
 
         // Example of a call to a native method
-        val result: Int = initAudioStream();
-        Log.println(Log.VERBOSE,"MainActivity", "Result of initAudioStream: $result");
-        activateAudio();
+//        val result: Int = initAudioStream();
+//        Log.println(Log.VERBOSE,"MainActivity", "Result of initAudioStream: $result");
+//        activateAudio();
     }
 
     private fun hideUI() {

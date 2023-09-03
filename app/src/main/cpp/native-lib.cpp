@@ -7,7 +7,7 @@
 
 namespace AudioSystem {
     bool activated = true;
-    long sampleCount = 0;
+    int64_t sampleCount = 0;
 }
 
 class AudioCallback : public oboe::AudioStreamDataCallback {
@@ -23,15 +23,17 @@ public:
         auto *outputData = static_cast<float *>(audioData);
 
         // Generate random numbers (white noise) centered around zero.
-        const int32_t amplitude = 0.2 * INT32_MAX;
+        const int32_t amplitude = 0.2 * INT16_MAX;
         for (int i = 0; i < numFrames; i += 2) {
             int32_t sample;
             //sample = (drand48() - 0.5f) * 2 * amplitude; // White Noise
-            double frequency = (sin((double)AudioSystem::sampleCount/48000.0));
-            sample = sin((AudioSystem::sampleCount)/48000.0*frequency/3.1415) * 2.0 * amplitude; // Sine Wave
-            __android_log_print(ANDROID_LOG_VERBOSE, __FUNCTION__, "SampleCount is %d", AudioSystem::sampleCount);
-            __android_log_print(ANDROID_LOG_VERBOSE, __FUNCTION__, "Sample is %d", sample);
-            __android_log_print(ANDROID_LOG_VERBOSE, __FUNCTION__, "Frequency is %d", frequency);
+            int32_t frequency = 440;//(sin((double)AudioSystem::sampleCount/48000.0) * 440.0 + 220.0);
+            sample = sin((((AudioSystem::sampleCount)*frequency)/48000.0)/3.1415) * amplitude; // Sine Wave
+            if(AudioSystem::sampleCount % 1000 == 0) {
+                //__android_log_print(ANDROID_LOG_VERBOSE, __FUNCTION__, "SampleCount is %d", AudioSystem::sampleCount);
+                __android_log_print(ANDROID_LOG_VERBOSE, __FUNCTION__, "Sample is %d", sample);
+                //__android_log_print(ANDROID_LOG_VERBOSE, __FUNCTION__, "Frequency is %d", frequency);
+            }
             //sample = AudioSystem::sampleCount % (long)(48000.0/frequency) < 200 ? 2000 : -2000;
             AudioSystem::sampleCount++;
             if (AudioSystem::activated) {
@@ -84,7 +86,7 @@ Java_com_rasmusq_influx2_MainActivity_initAudioStream(
 
     AudioBridge::audioStream->requestStart();
 
-    sleep(5);
+    sleep(100);
 
     AudioBridge::audioStream->requestStop();
     AudioBridge::audioStream->close();
