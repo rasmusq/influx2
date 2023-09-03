@@ -6,14 +6,12 @@
 #include <math.h>
 
 namespace AudioSystem {
-    bool activated = false;
+    bool activated = true;
+    long sampleCount = 0;
 }
 
 class AudioCallback : public oboe::AudioStreamDataCallback {
 public:
-    long leftSampleCount = 0;
-    long rightSampleCount = 0;
-    bool right = false;
 
     oboe::DataCallbackResult
     onAudioReady(oboe::AudioStream *audioStream, void *audioData, int32_t numFrames) {
@@ -25,19 +23,21 @@ public:
         auto *outputData = static_cast<float *>(audioData);
 
         // Generate random numbers (white noise) centered around zero.
-        const float amplitude = 0.2f;
+        const int32_t amplitude = 0.2 * INT32_MAX;
         for (int i = 0; i < numFrames; i += 2) {
-            float sample;
-            long *sampleCount = right ? &rightSampleCount : &leftSampleCount;
-            sample = ((float) drand48() - 0.5f) * 2 * amplitude; // White Noise
-            //sample = ((float)sin((float)*sampleCount/48000.0f*4400.0f) - 0.5f) * 2.0f * amplitude; // Sine Wave
-            *sampleCount++;
+            int32_t sample;
+            //sample = (drand48() - 0.5f) * 2 * amplitude; // White Noise
+            double frequency = (sin((double)AudioSystem::sampleCount/48000.0));
+            sample = sin((AudioSystem::sampleCount)/48000.0*frequency/3.1415) * 2.0 * amplitude; // Sine Wave
+            __android_log_print(ANDROID_LOG_VERBOSE, __FUNCTION__, "SampleCount is %d", AudioSystem::sampleCount);
+            __android_log_print(ANDROID_LOG_VERBOSE, __FUNCTION__, "Sample is %d", sample);
+            __android_log_print(ANDROID_LOG_VERBOSE, __FUNCTION__, "Frequency is %d", frequency);
+            //sample = AudioSystem::sampleCount % (long)(48000.0/frequency) < 200 ? 2000 : -2000;
+            AudioSystem::sampleCount++;
             if (AudioSystem::activated) {
                 outputData[i] = sample;
                 outputData[i + 1] = sample;
             }
-            __android_log_print(ANDROID_LOG_VERBOSE, __FUNCTION__,
-                                "Audio Activated: %d", AudioSystem::activated);
         }
 
         return oboe::DataCallbackResult::Continue;
@@ -60,7 +60,7 @@ Java_com_rasmusq_influx2_MainActivity_initAudioStream(
     AudioBridge::builder.setDirection(oboe::Direction::Output)->
             setPerformanceMode(oboe::PerformanceMode::LowLatency)->
             setSharingMode(oboe::SharingMode::Exclusive)->
-            setFormat(oboe::AudioFormat::Float)->
+            setFormat(oboe::AudioFormat::I32)->
             setChannelCount(oboe::ChannelCount::Stereo)->
             setDataCallback(&AudioBridge::audioCallback);
 
@@ -79,13 +79,19 @@ Java_com_rasmusq_influx2_MainActivity_initAudioStream(
     oboe::AudioFormat format = AudioBridge::audioStream->getFormat();
     __android_log_print(ANDROID_LOG_VERBOSE, __FUNCTION__, "AudioStream format is %s",
                         oboe::convertToText(format));
+    int32_t sampleRate = AudioBridge::audioStream->getSampleRate();
+    __android_log_print(ANDROID_LOG_VERBOSE, __FUNCTION__, "AudioStream sampleRate is %d", sampleRate);
 
     AudioBridge::audioStream->requestStart();
 
-    sleep(10);
+    sleep(5);
 
     AudioBridge::audioStream->requestStop();
     AudioBridge::audioStream->close();
+
+
+    __android_log_print(ANDROID_LOG_VERBOSE, "TEST", "SampleCount %d",
+                        AudioSystem::sampleCount);
 
     return 0;
 }

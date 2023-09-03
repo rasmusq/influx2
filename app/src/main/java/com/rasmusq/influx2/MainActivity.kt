@@ -1,24 +1,34 @@
 package com.rasmusq.influx2
 
-import android.content.pm.ActivityInfo
-import android.os.Build
+import android.graphics.Canvas
+import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
-import android.view.Window
-import android.view.WindowManager
-import androidx.annotation.RequiresApi
+import android.view.MotionEvent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import com.rasmusq.influx2.databinding.ActivityMainBinding
+import kotlin.random.Random
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
-    private var mainHandler: MainHandler = MainHandler()
-    private var screenHandler: ScreenHandler = ScreenHandler(this) {
+    private val mainHandler: MainHandler = MainHandler()
+    private var screenHandler: ScreenHandler? = null
+    private var audioHandler: AudioHandler? = null
 
+    private fun onDraw(canvas: Canvas) {
+        mainHandler.draw(canvas)
+    }
+
+    private fun onSurfaceChanged(left: Int, top: Int, right: Int, bottom: Int) {
+        // Override this
+    }
+
+    private fun onMotionEvent(motionEvent: MotionEvent) {
+        Log.println(Log.VERBOSE, "MainActivity", motionEvent.toString())
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -26,14 +36,17 @@ class MainActivity : AppCompatActivity() {
 
 //        binding = ActivityMainBinding.inflate(layoutInflater)
 //        setContentView(binding.root)
-        setContentView(screenHandler.sur)
+        screenHandler = ScreenHandler(this, ::onDraw, ::onSurfaceChanged, ::onMotionEvent)
+        setContentView(requireNotNull(screenHandler).surfaceView)
+
+        audioHandler = AudioHandler(this)
 
         hideUI()
 
         // Example of a call to a native method
-//      val result: Int = initAudioStream();
-//      Log.d("MainActivity", "Result of initAudioStream: $result");
-//      activateAudio();
+        val result: Int = initAudioStream();
+        Log.println(Log.VERBOSE,"MainActivity", "Result of initAudioStream: $result");
+        activateAudio();
     }
 
     private fun hideUI() {
@@ -42,6 +55,8 @@ class MainActivity : AppCompatActivity() {
         // Configure the behavior of the hidden system bars.
         windowInsetsController.systemBarsBehavior =
             WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        windowInsetsController.hide(WindowInsetsCompat.Type.statusBars())
+        windowInsetsController.hide(WindowInsetsCompat.Type.navigationBars())
     }
 
     /** EXAMPLES FOR POTENTIALLY IMPLEMENTING NATIVE AUDIO PROCESSING IN THE FUTURE

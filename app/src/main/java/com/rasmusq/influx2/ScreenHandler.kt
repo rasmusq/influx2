@@ -4,42 +4,44 @@ import android.app.Activity
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.PixelFormat
-import android.util.DisplayMetrics
 import android.view.MotionEvent
 import android.view.SurfaceHolder
 import android.view.SurfaceView
-import android.view.View
 
-abstract class ScreenHandler(activity: Activity) {
+class ScreenHandler(
+    activity: Activity,
+    onDraw: (canvas: Canvas) -> Unit,
+    onSurfaceChanged: (left: Int, top: Int, right: Int, bottom: Int) -> Unit,
+    onMotionEvent: (motionEvent: MotionEvent) -> Unit
+) {
 
-    private var surfaceView: SurfaceView? = null
-    private var surfaceHolder: SurfaceHolder? = null
-    private var surfaceHolderCallback: SurfaceHolder.Callback? = null
-    private var drawThread: Thread? = null
-    private val drawLoopIsRunning = true
+    private val _surfaceView: SurfaceView = createSurfaceView(activity)
+    val surfaceView: SurfaceView
+        get() = _surfaceView
+    private val _surfaceHolderCallback: SurfaceHolder.Callback = createSurfaceHolderCallback()
+    private val _surfaceHolder: SurfaceHolder =
+        createSurfaceHolder(_surfaceView, _surfaceHolderCallback)
+    private val _drawThread: Thread = createThread()
+    private val _drawLoopIsRunning = true
+    private val _drawFunc = onDraw;
+    private val _surfaceChangeFunc = onSurfaceChanged;
+    private val _motionEventFunc = onMotionEvent;
 
     init {
-        surfaceHolder = initializeSurface(activity)
-        initializeThread()
         startThread()
     }
 
-    abstract fun OnDraw(canvas: Canvas)
-    abstract fun OnSurfaceChanged(left: Int, top: Int, right: Int, bottom: Int)
-    abstract fun OnMotionEvent(motionEvent: MotionEvent)
-
     private fun createSurfaceView(context: Context): SurfaceView {
-        var surfaceView: SurfaceView = object : SurfaceView(context) {
+        return object : SurfaceView(context) {
             override fun onTouchEvent(motionEvent: MotionEvent): Boolean {
-                OnMotionEvent(motionEvent)
+                _motionEventFunc(motionEvent)
                 return true
             }
         }
-        return surfaceView;
     }
-    private fun createSurfaceHolder(context: Context): SurfaceHolder {
 
-        surfaceHolderCallback = object : SurfaceHolder.Callback {
+    private fun createSurfaceHolderCallback(): SurfaceHolder.Callback {
+        return object : SurfaceHolder.Callback {
             override fun surfaceCreated(surfaceHolder: SurfaceHolder) {}
             override fun surfaceChanged(
                 surfaceHolder: SurfaceHolder,
@@ -47,42 +49,47 @@ abstract class ScreenHandler(activity: Activity) {
                 width: Int,
                 height: Int
             ) {
-                OnSurfaceChanged(0, 0, width, height)
+                _surfaceChangeFunc(0, 0, width, height)
             }
 
             override fun surfaceDestroyed(surfaceHolder: SurfaceHolder) {}
         }
-        surfaceHolder = surfaceView.getHolder()
+    }
+
+    private fun createSurfaceHolder(
+        surfaceView: SurfaceView,
+        surfaceHolderCallback: SurfaceHolder.Callback
+    ): SurfaceHolder {
+        val surfaceHolder = surfaceView.getHolder()
         surfaceHolder.setFormat(PixelFormat.TRANSPARENT)
         surfaceHolder.addCallback(surfaceHolderCallback)
         return surfaceHolder
     }
 
-    private fun initializeThread() {
-        drawThread = Thread {
-            while (drawLoopIsRunning) {
+    private fun createThread(): Thread {
+        return Thread {
+            while (_drawLoopIsRunning) {
                 draw()
             }
         }
-        drawThread!!.name = "Draw Thread"
     }
 
     private fun startThread() {
-        drawThread!!.start()
+        _drawThread.start()
     }
 
     fun draw() {
         var canvas: Canvas? = null
         try {
-            if (surfaceHolder!!.surface.isValid) {
-                canvas = surfaceHolder!!.lockCanvas()
+            if (_surfaceHolder!!.surface.isValid) {
+                canvas = _surfaceHolder!!.lockCanvas()
             }
             if (canvas != null) {
-                OnDraw(canvas)
+                _drawFunc(canvas)
             }
         } finally {
             if (canvas != null) {
-                surfaceHolder!!.unlockCanvasAndPost(canvas)
+                _surfaceHolder!!.unlockCanvasAndPost(canvas)
             }
         }
     }
