@@ -6,6 +6,8 @@
 #include <math.h>
 #include <chrono>
 
+//TODO: Make a separate thread that calls a Kotlin functions which sends audio data back to Kotlin for visualization
+
 namespace AudioSystem {
     bool playing = false;
     int64_t sampleCount = 0;
