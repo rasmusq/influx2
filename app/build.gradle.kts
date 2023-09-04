@@ -20,6 +20,9 @@ android {
             cmake {
                 arguments("-DANDROID_STL=c++_shared")
             }
+//            ndkBuild {
+//                cppFlags("-O3", "-DNDEBUG")
+//            }
         }
     }
 

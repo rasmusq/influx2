@@ -33,11 +33,11 @@ class AudioHandler(activity: Activity, onAudio: (inputBuffer: ShortArray, output
 
         _audioTrack = AudioTrack.Builder().setAudioAttributes(
             AudioAttributes.Builder()
-                .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-                .setUsage(AudioAttributes.USAGE_GAME).build()
+                .setContentType(AudioAttributes.CONTENT_TYPE_UNKNOWN)
+                .setUsage(AudioAttributes.USAGE_UNKNOWN).build()
         )
             .setAudioFormat(
-                AudioFormat.Builder().setEncoding(AudioFormat.ENCODING_PCM_16BIT)
+                AudioFormat.Builder().setEncoding(AudioFormat.ENCODING_PCM_32BIT)
                     .setChannelMask(AudioFormat.CHANNEL_OUT_DEFAULT).setSampleRate(sampleRate).build()
             ).setPerformanceMode(AudioTrack.PERFORMANCE_MODE_LOW_LATENCY)
             .setBufferSizeInBytes(bufferSize).setTransferMode(AudioTrack.MODE_STREAM).build()
