@@ -1,0 +1,10 @@
+#ifndef INFLUX2_INSTRUMENTPIPELINE_H
+#define INFLUX2_INSTRUMENTPIPELINE_H
+
+
+class InstrumentPipeline {
+
+};
+
+
+#endif //INFLUX2_INSTRUMENTPIPELINE_H

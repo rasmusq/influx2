@@ -5,67 +5,32 @@
 #include <unistd.h>
 #include <math.h>
 #include <chrono>
+#include "AudioPipeline.h"
 
-bool playing = false;
-int64_t sampleCount = 0;
-int64_t currentInputBufferSample = 0;
-int32_t *inputBuffer;
-int32_t *outputBuffer;
 int inputBufferSize = 0;
 int outputBufferSize = 0;
+int inputSampleRate = 0;
+int outputSampleRate = 0;
+//NOTE: We assume that there are always two channels, because that is what we set it to
+
+AudioPipeline audioPipeline = AudioPipeline();
 
 class AudioOutputCallback : public oboe::AudioStreamDataCallback {
 public:
-
     oboe::DataCallbackResult
     onAudioReady(oboe::AudioStream *audioStream, void *audioData, int32_t numFrames) {
-
-        // We requested AudioFormat::Float. So if the stream opens
-        // we know we got the Float format.
-        // If you do not specify a format then you should check what format
-        // the stream has and cast to the appropriate type.
         auto *outputData = static_cast<int32_t *>(audioData);
-        outputBuffer = outputData;
-
-        // Generate random numbers (white noise) centered around zero.
-        const int32_t amplitude = INT32_MAX / 5;
-        for (int i = 0; i < numFrames*2; i += 2) {
-            sampleCount++;
-            if (playing) {
-//                outputData[i] = tan((double)(sampleCount) * 440.0 * 3.141593 * 2.0 / 48000.0) * amplitude;
-//                outputData[i+1] = tan((double)(sampleCount) * 440.0 * 3.141593 * 2.0 / 48000.0) * amplitude;
-                outputData[i] = inputBuffer[currentInputBufferSample];
-                outputData[i+1] = inputBuffer[currentInputBufferSample+1];
-                currentInputBufferSample += 2;
-            } else {
-                outputData[i] = 0;
-                outputData[i+1] = 0;
-            }
-        }
-
+        audioPipeline.onAudioOutput(outputData, numFrames);
         return oboe::DataCallbackResult::Continue;
     }
 };
 
 class AudioInputCallback : public oboe::AudioStreamDataCallback {
 public:
-
     oboe::DataCallbackResult
     onAudioReady(oboe::AudioStream *audioStream, void *audioData, int32_t numFrames) {
-
-        // We requested AudioFormat::Float. So if the stream opens
-        // we know we got the Float format.
-        // If you do not specify a format then you should check what format
-        // the stream has and cast to the appropriate type.
         auto *inputData = static_cast<int32_t *>(audioData);
-        inputBuffer = inputData;
-
-        // Generate random numbers (white noise) centered around zero.
-        currentInputBufferSample = 0;
-        for (int i = 0; i < numFrames*2; i += 2) {
-
-        }
-
+        audioPipeline.onAudioInput(inputData, numFrames);
         return oboe::DataCallbackResult::Continue;
     }
 };
@@ -86,6 +51,7 @@ Java_com_rasmusq_influx2_MainActivity_initAudioStream(
             setPerformanceMode(oboe::PerformanceMode::LowLatency)->
             setSharingMode(oboe::SharingMode::Exclusive)->
             setFormat(oboe::AudioFormat::I32)->
+            setChannelCount(oboe::ChannelCount::Stereo)->
             setDataCallback(&audioOutputCallback);
 
 
@@ -101,14 +67,18 @@ Java_com_rasmusq_influx2_MainActivity_initAudioStream(
     }
 
     oboe::AudioFormat format = audioOutputStream->getFormat();
-    __android_log_print(ANDROID_LOG_VERBOSE, __FUNCTION__, "Output AudioStream format is %s",
+    __android_log_print(ANDROID_LOG_VERBOSE, __FUNCTION__,
+                        "Output AudioStream format is %s",
                         oboe::convertToText(format));
-    int32_t sampleRate = audioOutputStream->getSampleRate();
-    __android_log_print(ANDROID_LOG_VERBOSE, __FUNCTION__, "Output AudioStream sampleRate is %d", sampleRate);
+    outputSampleRate = audioOutputStream->getSampleRate();
+    __android_log_print(ANDROID_LOG_VERBOSE, __FUNCTION__,
+                        "Output AudioStream sampleRate is %d", outputSampleRate);
     outputBufferSize = audioOutputStream->getBufferSizeInFrames();
-    __android_log_print(ANDROID_LOG_VERBOSE, __FUNCTION__, "Output AudioStream bufferSize is %d", outputBufferSize);
+    __android_log_print(ANDROID_LOG_VERBOSE, __FUNCTION__,
+                        "Output AudioStream bufferSize is %d", outputBufferSize);
     int32_t channelCount = audioOutputStream->getChannelCount();
-    __android_log_print(ANDROID_LOG_VERBOSE, __FUNCTION__, "Output AudioStream channelCount is %d", channelCount);
+    __android_log_print(ANDROID_LOG_VERBOSE, __FUNCTION__,
+                        "Output AudioStream channelCount is %d", channelCount);
 
 
 
@@ -125,14 +95,18 @@ Java_com_rasmusq_influx2_MainActivity_initAudioStream(
     }
 
     format = audioInputStream->getFormat();
-    __android_log_print(ANDROID_LOG_VERBOSE, __FUNCTION__, "Input AudioStream format is %s",
+    __android_log_print(ANDROID_LOG_VERBOSE, __FUNCTION__,
+                        "Input AudioStream format is %s",
                         oboe::convertToText(format));
-    sampleRate = audioInputStream->getSampleRate();
-    __android_log_print(ANDROID_LOG_VERBOSE, __FUNCTION__, "Input AudioStream sampleRate is %d", sampleRate);
+    inputSampleRate = audioInputStream->getSampleRate();
+    __android_log_print(ANDROID_LOG_VERBOSE, __FUNCTION__,
+                        "Input AudioStream sampleRate is %d", inputSampleRate);
     inputBufferSize = audioInputStream->getBufferSizeInFrames();
-    __android_log_print(ANDROID_LOG_VERBOSE, __FUNCTION__, "Input AudioStream bufferSize is %d", inputBufferSize);
+    __android_log_print(ANDROID_LOG_VERBOSE, __FUNCTION__,
+                        "Input AudioStream bufferSize is %d", inputBufferSize);
     channelCount = audioInputStream->getChannelCount();
-    __android_log_print(ANDROID_LOG_VERBOSE, __FUNCTION__, "Input AudioStream channelCount is %d", channelCount);
+    __android_log_print(ANDROID_LOG_VERBOSE, __FUNCTION__,
+                        "Input AudioStream channelCount is %d", channelCount);
 
     return 0;
 }
@@ -164,45 +138,8 @@ Java_com_rasmusq_influx2_MainActivity_closeAudioStream(JNIEnv *env, jobject /* t
 }
 
 extern "C" JNIEXPORT jint JNICALL
-Java_com_rasmusq_influx2_MainActivity_pauseAudio(JNIEnv *env, jobject /* this */) {
-    playing = false;
+Java_com_rasmusq_influx2_MainActivity_onMidi(JNIEnv *env, jobject /* this */, jintArray data) {
     __android_log_print(ANDROID_LOG_VERBOSE, __FUNCTION__,
-                        "AudioStream Paused");
+                        "Midi Sent");
     return 0;
-}
-
-extern "C" JNIEXPORT jint JNICALL
-Java_com_rasmusq_influx2_MainActivity_resumeAudio(JNIEnv *env, jobject /* this */) {
-    playing = true;
-    __android_log_print(ANDROID_LOG_VERBOSE, __FUNCTION__,
-                        "AudioStream Resumed");
-    return 0;
-}
-
-extern "C" JNIEXPORT jintArray JNICALL
-Java_com_rasmusq_influx2_MainActivity_getInputBuffer(JNIEnv *env, jobject /* this */) {
-    // Create a new jintArray
-    jintArray resultArray = env->NewIntArray(inputBufferSize);
-    // Check for exceptions
-    if (resultArray == NULL || inputBuffer == NULL || inputBufferSize == 0) {
-        // Handle error, return or throw an exception
-        return NULL;
-    }
-    // Copy the contents of the int32_t array to the jintArray
-    env->SetIntArrayRegion(resultArray, 0, inputBufferSize, reinterpret_cast<jint*>(inputBuffer));
-    return resultArray;
-}
-extern "C" JNIEXPORT jintArray JNICALL
-Java_com_rasmusq_influx2_MainActivity_getOutputBuffer(JNIEnv *env, jobject /* this */) {
-    // Create a new jintArray
-    jintArray resultArray = env->NewIntArray(outputBufferSize);
-    // Check for exceptions
-    if (resultArray == NULL || outputBuffer == NULL || outputBufferSize == 0) {
-        // Handle error, return or throw an exception
-        return NULL;
-    }
-    // Copy the contents of the int32_t array to the jintArray
-    env->SetIntArrayRegion(resultArray, 0, outputBufferSize, reinterpret_cast<jint*>(outputBuffer));
-
-    return resultArray;
 }

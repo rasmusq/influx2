@@ -1,8 +1,6 @@
 package com.rasmusq.influx2
 
 import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.Paint
 import android.os.Bundle
 import android.util.Log
 import android.view.MotionEvent
@@ -11,7 +9,6 @@ import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import com.rasmusq.influx2.databinding.ActivityMainBinding
-import kotlin.random.Random
 
 class MainActivity : AppCompatActivity() {
 
@@ -20,30 +17,18 @@ class MainActivity : AppCompatActivity() {
     private var screenHandler: ScreenHandler? = null
     private var audioHandler: AudioHandler? = null
 
-    private var _androidTime: Long = 0
-    private var _nativeTime: Long = 0
-    private val _paint: Paint = Paint();
     private fun onDraw(canvas: Canvas) {
         mainHandler.draw(canvas)
 
 
     }
-    private fun onAudio(inputBuffer: ShortArray, outputBuffer: ShortArray) {
-        mainHandler.audio(inputBuffer, outputBuffer)
-    }
 
     private fun onSurfaceChanged(left: Int, top: Int, right: Int, bottom: Int) {
-        // Override this
+
     }
 
     private fun onMotionEvent(motionEvent: MotionEvent) {
         Log.println(Log.VERBOSE, "MainActivity", motionEvent.toString())
-        if(motionEvent.action == MotionEvent.ACTION_DOWN)
-            resumeAudio()
-//            mainHandler.playingAudio = true
-        else if(motionEvent.action == MotionEvent.ACTION_UP)
-            pauseAudio()
-//            mainHandler.playingAudio = false
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -54,9 +39,7 @@ class MainActivity : AppCompatActivity() {
         screenHandler = ScreenHandler(this, ::onDraw, ::onSurfaceChanged, ::onMotionEvent)
         setContentView(requireNotNull(screenHandler).surfaceView)
 
-//        audioHandler = AudioHandler(this, ::onAudio)
-//        audioHandler?.createAudioTrack()
-//        audioHandler?.startPlayingAudio()
+        audioHandler = AudioHandler(this)
 
         hideUI()
 
@@ -80,6 +63,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun hideUI() {
+        //NOTE: android:theme in the AndroidManifest.xml file also determines some UI elements
         val windowInsetsController =
             WindowCompat.getInsetsController(window, window.decorView)
         // Configure the behavior of the hidden system bars.
@@ -89,20 +73,11 @@ class MainActivity : AppCompatActivity() {
         windowInsetsController.hide(WindowInsetsCompat.Type.navigationBars())
     }
 
-    /** EXAMPLES FOR POTENTIALLY IMPLEMENTING NATIVE AUDIO PROCESSING IN THE FUTURE
-     * A native method that is implemented by the 'influx2' native library,
-     * which is packaged with this application.
-     */
     external fun initAudioStream(): Int
     external fun startAudioStream(): Int
     external fun stopAudioStream(): Int
     external fun closeAudioStream(): Int
-
-    external fun pauseAudio(): Int
-
-    external fun resumeAudio(): Int
-    external fun getInputBuffer(): IntArray
-    external fun getOutputBuffer(): IntArray
+    external fun onMidi(midiData: IntArray): Int
 
     companion object {
         // Used to load the 'influx2' library on application startup.
