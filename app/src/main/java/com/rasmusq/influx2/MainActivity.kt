@@ -26,9 +26,7 @@ class MainActivity : AppCompatActivity() {
     private fun onDraw(canvas: Canvas) {
         mainHandler.draw(canvas)
 
-        canvas.drawText("Android time: $_androidTime", 100.0f, 100.0f, _paint)
-        canvas.drawText("Native time: $_nativeTime", 100.0f, 200.0f, _paint)
-        _paint.setTextSize(55.0f)
+
     }
     private fun onAudio(inputBuffer: ShortArray, outputBuffer: ShortArray) {
         mainHandler.audio(inputBuffer, outputBuffer)
@@ -103,6 +101,8 @@ class MainActivity : AppCompatActivity() {
     external fun pauseAudio(): Int
 
     external fun resumeAudio(): Int
+    external fun getInputBuffer(): IntArray
+    external fun getOutputBuffer(): IntArray
 
     companion object {
         // Used to load the 'influx2' library on application startup.
