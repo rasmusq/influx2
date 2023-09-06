@@ -2,14 +2,15 @@
 #define INFLUX2_AUDIOPIPELINE_H
 
 #include <stdint.h>
-#include <list>
+#include <vector>
 #include "InstrumentPipeline.h"
 
 class AudioPipeline {
 
-    std::list<InstrumentPipeline> instrumentPipelines;
-    const int maxPipelines = 4;
-    int currentPipeline;
+    const static int MAX_PIPELINES = 4;
+    InstrumentPipeline instrumentPipelines[MAX_PIPELINES];
+    int currentPipelineIndex;
+    InstrumentPipeline *currentPipelinePtr;
 
 public:
     AudioPipeline();

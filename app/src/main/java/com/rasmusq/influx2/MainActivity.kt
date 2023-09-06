@@ -29,6 +29,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun onMotionEvent(motionEvent: MotionEvent) {
         Log.println(Log.VERBOSE, "MainActivity", motionEvent.toString())
+        onMidi(intArrayOf(1, 2, 3, 4, 5));
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

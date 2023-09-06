@@ -59,11 +59,13 @@ Java_com_rasmusq_influx2_MainActivity_initAudioStream(
 
     if (result != oboe::Result::OK) {
         __android_log_print(ANDROID_LOG_VERBOSE, __FUNCTION__,
-                            "Failed to create output stream. Error: %s", oboe::convertToText(result));
+                            "Failed to create output stream. Error: %s",
+                            oboe::convertToText(result));
         return 1;
     } else {
         __android_log_print(ANDROID_LOG_VERBOSE, __FUNCTION__,
-                            "Successfully created output stream. Result: %s", oboe::convertToText(result));
+                            "Successfully created output stream. Result: %s",
+                            oboe::convertToText(result));
     }
 
     oboe::AudioFormat format = audioOutputStream->getFormat();
@@ -87,11 +89,13 @@ Java_com_rasmusq_influx2_MainActivity_initAudioStream(
     result = builder.openStream(audioInputStream);
     if (result != oboe::Result::OK) {
         __android_log_print(ANDROID_LOG_VERBOSE, __FUNCTION__,
-                            "Failed to create input stream. Error: %s", oboe::convertToText(result));
+                            "Failed to create input stream. Error: %s",
+                            oboe::convertToText(result));
         return 1;
     } else {
         __android_log_print(ANDROID_LOG_VERBOSE, __FUNCTION__,
-                            "Successfully created input stream. Result: %s", oboe::convertToText(result));
+                            "Successfully created input stream. Result: %s",
+                            oboe::convertToText(result));
     }
 
     format = audioInputStream->getFormat();
@@ -138,8 +142,27 @@ Java_com_rasmusq_influx2_MainActivity_closeAudioStream(JNIEnv *env, jobject /* t
 }
 
 extern "C" JNIEXPORT jint JNICALL
-Java_com_rasmusq_influx2_MainActivity_onMidi(JNIEnv *env, jobject /* this */, jintArray data) {
+Java_com_rasmusq_influx2_MainActivity_onMidi(JNIEnv *env, jobject /* this */, jintArray midiData) {
     __android_log_print(ANDROID_LOG_VERBOSE, __FUNCTION__,
                         "Midi Sent");
+    jint *jintArray = env->GetIntArrayElements(midiData, nullptr);
+    int arrayLength = env->GetArrayLength(midiData);
+
+    // Create a C array of int
+    int *cArray = new int[arrayLength];
+
+    // Convert each element from jint to int
+    for (int i = 0; i < arrayLength; i++) {
+        cArray[i] = static_cast<int>(jintArray[i]);
+    }
+
+    // Now, 'cArray' is your C array of integers (int[]).
+
+    // Perform operations on 'cArray' as needed.
+    audioPipeline.onMidi(cArray, arrayLength);
+
+    // Don't forget to release the 'jintArray' and 'cArray' when you're done.
+    env->ReleaseIntArrayElements(midiData, jintArray, JNI_ABORT);
+    delete[] cArray;
     return 0;
 }
