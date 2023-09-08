@@ -4,15 +4,17 @@
 
 #include <cstdint>
 #include "AudioNode.h"
+#include "instruments/Synth.h"
+#include "effects/Spring.h"
 
 class InstrumentPipeline {
 
-    AudioNode instrument;
+    AudioNode* instrument = new Synth();
     int currentInstrumentIndex;
     int currentEffectIndex;
     const static int EFFECT_AMOUNT = 4;
-    AudioNode effects[EFFECT_AMOUNT];
-
+//    AudioNode effects[EFFECT_AMOUNT];
+    AudioNode* effect = new Spring();
 
 public:
     InstrumentPipeline();

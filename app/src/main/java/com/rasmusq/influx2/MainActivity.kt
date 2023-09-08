@@ -29,7 +29,11 @@ class MainActivity : AppCompatActivity() {
 
     private fun onMotionEvent(motionEvent: MotionEvent) {
         Log.println(Log.VERBOSE, "MainActivity", motionEvent.toString())
-        onMidi(intArrayOf(1, 2, 3, 4, 5));
+        if (motionEvent.action == MotionEvent.ACTION_DOWN) {
+            onMidi(intArrayOf(1, 2, 3, 4, 5));
+        } else if(motionEvent.action == MotionEvent.ACTION_UP) {
+            onMidi(intArrayOf(0, 2, 3, 4, 5));
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -52,6 +56,7 @@ class MainActivity : AppCompatActivity() {
         super.onStop()
         stopAudioStream()
     }
+
     override fun onDestroy() {
         super.onDestroy()
         stopAudioStream()

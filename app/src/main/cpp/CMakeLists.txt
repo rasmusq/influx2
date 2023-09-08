@@ -30,8 +30,9 @@ add_library(${CMAKE_PROJECT_NAME} SHARED
         AudioPipeline.cpp
         InstrumentPipeline.cpp
         AudioNode.cpp
-        Instrument.cpp
         instruments/Synth.cpp
+        effects/Spring.cpp
+        Helpers.cpp
         )
 
 find_package (oboe REQUIRED CONFIG)

@@ -4,8 +4,21 @@
 
 #include "../AudioNode.h"
 
-class Synth : AudioNode {
+class Synth : public AudioNode {
 
+public:
+    bool playing = false;
+    float amplitude = 0.0;
+    uint64_t sampleCount = 0;
+
+
+    void handleOutputAudio(int32_t *buffer, int32_t bufferSize) override;
+
+    void handleMidi(int32_t *midiData, int32_t midiDataLength) override;
+
+    bool handlesMidi() override;
+
+    bool handlesOutputAudio() override;
 };
 
 
