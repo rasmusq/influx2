@@ -2,6 +2,8 @@
 #include <limits>
 #include "Helpers.h"
 
+
+
 int32_t Helpers::cordicSine(int32_t angle) {
     int32_t x = 1 << 30;  // Initial x value (cosine of 0)
     int32_t y = 0;       // Initial y value (sine of 0)

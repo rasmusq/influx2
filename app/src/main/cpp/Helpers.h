@@ -3,11 +3,14 @@
 
 
 #include <cstdint>
+#include <limits>
 
 class Helpers {
 public:
-    static const int32_t MAX_AMPLITUDE = std::numeric_limits<int32_t>::max();
-    static const int32_t MIN_AMPLITUDE = std::numeric_limits<int32_t>::min();
+    static const int32_t MAX32_AMPLITUDE = std::numeric_limits<int32_t>::max();
+    static const int64_t MAX64_AMPLITUDE = std::numeric_limits<int32_t>::max();
+    static const int32_t MIN32_AMPLITUDE = std::numeric_limits<int32_t>::min();
+    static const int64_t MIN64_AMPLITUDE = std::numeric_limits<int32_t>::min();
 
     // Define the number of CORDIC iterations for accuracy (adjust as needed)
     static const int32_t CORDIC_ITERATIONS = 15;

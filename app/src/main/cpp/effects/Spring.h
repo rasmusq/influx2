@@ -3,19 +3,24 @@
 
 
 #include "../AudioNode.h"
+#include "chrono"
 
 class Spring : public AudioNode {
 
-    static const int SPRING_RES = 64;
+    int64_t bufferCount = 0;
+    std::chrono::high_resolution_clock::time_point startTime, endTime;
+    static const int SPRING_RES = 96;
     float springArrayPositionL[SPRING_RES];
     float springArrayPositionR[SPRING_RES];
     float springArrayVelocityL[SPRING_RES];
     float springArrayVelocityR[SPRING_RES];
-    float dampeningL = 0.99985;
+    float output[1024];
+    float dampeningL = 0.99995;
     float tensionL = 0.00700;
-    float dampeningR = 0.99985;
-    float tensionR = 0.00625;
-    float wetness = 0.8;
+    float dampeningR = 0.99995;
+    float tensionR = 0.00500;
+    float gain = 1.0;
+    float wetness = 0.99;
 
 public:
     void handleOutputAudio(int32_t *buffer, int32_t bufferSize) override;
