@@ -41,6 +41,9 @@ oboe::AudioStreamBuilder builder;
 std::shared_ptr<oboe::AudioStream> audioOutputStream;
 std::shared_ptr<oboe::AudioStream> audioInputStream;
 
+jintArray returnValueData, returnAudioData, returnOtherdata;
+const int *tempValueData, *tempAudioData, *tempOtherdata;
+
 extern "C" JNIEXPORT jint JNICALL
 Java_com_rasmusq_influx2_MainActivity_initAudioStream(
         JNIEnv *env,
@@ -165,4 +168,12 @@ Java_com_rasmusq_influx2_MainActivity_onMidi(JNIEnv *env, jobject /* this */, ji
     env->ReleaseIntArrayElements(midiData, jintArray, JNI_ABORT);
     delete[] cArray;
     return 0;
+}
+
+extern "C" JNIEXPORT jintArray JNICALL
+Java_com_rasmusq_influx2_MainActivity_getAudioNodeValueData(JNIEnv *env, jobject /* this */, jint audioNodeIndex) {
+    tempValueData = audioPipeline.getCurrentInstrument()->getAudioNode(audioNodeIndex)->getValueData();
+    returnValueData = env->NewIntArray(AudioNode::MAX_VALUE_COUNT);
+    env->SetIntArrayRegion(returnValueData, 0, AudioNode::MAX_VALUE_COUNT, tempValueData);
+    return returnValueData;
 }

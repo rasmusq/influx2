@@ -7,9 +7,7 @@
 
 class Spring : public AudioNode {
 
-    int64_t bufferCount = 0;
-    std::chrono::high_resolution_clock::time_point startTime, endTime;
-    static const int SPRING_RES = 96;
+    static const int SPRING_RES = 64;
     float springArrayPositionL[SPRING_RES];
     float springArrayPositionR[SPRING_RES];
     float springArrayVelocityL[SPRING_RES];

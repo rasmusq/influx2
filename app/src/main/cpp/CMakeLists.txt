@@ -28,7 +28,7 @@ add_library(${CMAKE_PROJECT_NAME} SHARED
         # List C/C++ source files with relative paths to this CMakeLists.txt.
         native-lib.cpp
         AudioPipeline.cpp
-        InstrumentPipeline.cpp
+        Instrument.cpp
         AudioNode.cpp
         instruments/Synth.cpp
         effects/Spring.cpp

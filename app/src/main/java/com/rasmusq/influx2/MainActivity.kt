@@ -33,6 +33,7 @@ class MainActivity : AppCompatActivity() {
             onMidi(intArrayOf(1, 2, 3, 4, 5));
         } else if(motionEvent.action == MotionEvent.ACTION_UP) {
             onMidi(intArrayOf(0, 2, 3, 4, 5));
+            Log.i("MainActivity", "AudioNodeValueData: ${getAudioNodeValueData(0).get(0)}")
         }
     }
 
@@ -84,6 +85,15 @@ class MainActivity : AppCompatActivity() {
     external fun stopAudioStream(): Int
     external fun closeAudioStream(): Int
     external fun onMidi(midiData: IntArray): Int
+    external fun getAudioNodeValueData(audioNodeIndex: Int): IntArray;
+
+//    external fun getAudioData(): IntArray;
+//
+//    external fun getOtherData(): IntArray;
+//
+//    external fun getPeakL(): Int;
+//
+//    external fun getPeakR(): Int;
 
     companion object {
         // Used to load the 'influx2' library on application startup.
