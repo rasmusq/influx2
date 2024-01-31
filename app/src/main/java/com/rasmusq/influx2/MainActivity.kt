@@ -12,15 +12,14 @@ import com.rasmusq.influx2.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var binding: ActivityMainBinding
     private val mainHandler: MainHandler = MainHandler()
-    private var screenHandler: ScreenHandler? = null
-    private var audioHandler: AudioHandler? = null
+
+    private lateinit var _binding: ActivityMainBinding
+    private lateinit var _screenHandler: ScreenHandler
+    private lateinit var _audioHandler: AudioHandler
 
     private fun onDraw(canvas: Canvas) {
         mainHandler.draw(canvas)
-
-
     }
 
     private fun onSurfaceChanged(left: Int, top: Int, right: Int, bottom: Int) {
@@ -42,10 +41,10 @@ class MainActivity : AppCompatActivity() {
 
 //        binding = ActivityMainBinding.inflate(layoutInflater)
 //        setContentView(binding.root)
-        screenHandler = ScreenHandler(this, ::onDraw, ::onSurfaceChanged, ::onMotionEvent)
-        setContentView(requireNotNull(screenHandler).surfaceView)
+        _screenHandler = ScreenHandler(this, ::onDraw, ::onSurfaceChanged, ::onMotionEvent)
+        setContentView(requireNotNull(_screenHandler).surfaceView)
 
-        audioHandler = AudioHandler(this)
+        _audioHandler = AudioHandler(this)
 
         hideUI()
 
