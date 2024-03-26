@@ -9,6 +9,7 @@ class Synth : public AudioNode {
 public:
     bool playing = false;
     float amplitude = 0.0;
+    float frequency = 440.0;
     uint64_t sampleCount = 0;
 
 

@@ -29,7 +29,8 @@ class MainActivity : AppCompatActivity() {
     private fun onMotionEvent(motionEvent: MotionEvent) {
         Log.println(Log.VERBOSE, "MainActivity", motionEvent.toString())
         if (motionEvent.action == MotionEvent.ACTION_DOWN) {
-            onMidi(intArrayOf(1, 2, 3, 4, 5));
+            val y: Int = motionEvent.rawY.toInt();
+            onMidi(intArrayOf(y, 2, 3, 4, 5));
         } else if(motionEvent.action == MotionEvent.ACTION_UP) {
             onMidi(intArrayOf(0, 2, 3, 4, 5));
             Log.i("MainActivity", "AudioNodeValueData: ${getAudioNodeValueData(0).get(0)}")
