@@ -24,6 +24,9 @@ void Synth::handleOutputAudio(int32_t *buffer, int32_t bufferSize) {
         }
         buffer[i] = value;
         buffer[i + 1] = value;
+        buffer[i] = rand();
+        buffer[i + 1] = rand();
+
         readSample(buffer[i], buffer[i+1]);
     }
 }
